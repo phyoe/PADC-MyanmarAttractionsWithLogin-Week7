@@ -2,6 +2,7 @@ package xyz.aungpyaephyo.padc.myanmarattractions.data.agents.retrofit;
 
 import java.util.concurrent.TimeUnit;
 
+import de.greenrobot.event.EventBus;
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -11,6 +12,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import xyz.aungpyaephyo.padc.myanmarattractions.data.agents.AttractionDataAgent;
 import xyz.aungpyaephyo.padc.myanmarattractions.data.models.AttractionModel;
 import xyz.aungpyaephyo.padc.myanmarattractions.data.responses.AttractionListResponse;
+import xyz.aungpyaephyo.padc.myanmarattractions.data.responses.RegisterResponse;
+import xyz.aungpyaephyo.padc.myanmarattractions.events.UserEvent;
 import xyz.aungpyaephyo.padc.myanmarattractions.utils.CommonInstances;
 import xyz.aungpyaephyo.padc.myanmarattractions.utils.MyanmarAttractionsConstants;
 
@@ -32,7 +35,7 @@ public class RetrofitDataAgent implements AttractionDataAgent {
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(MyanmarAttractionsConstants.ATTRACTION_BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create(CommonInstances.getGsonInstance()))
+                .addConverterFactory(GsonConverterFactory.create(CommonInstances.getGsonInstance())) //new Gson()
                 .client(okHttpClient)
                 .build();
 
@@ -63,6 +66,35 @@ public class RetrofitDataAgent implements AttractionDataAgent {
             @Override
             public void onFailure(Call<AttractionListResponse> call, Throwable throwable) {
                 AttractionModel.getInstance().notifyErrorInLoadingAttractions(throwable.getMessage());
+            }
+        });
+    }
+
+    @Override
+    public void register(String name, String email, String password, String dateOfBirth, String countryOfOrigin) {
+        Call<RegisterResponse> registerCall = theApi.register(name, email, password, dateOfBirth, countryOfOrigin);
+        registerCall.enqueue(new Callback<RegisterResponse>() {
+            @Override
+            public void onResponse(Call<RegisterResponse> call, Response<RegisterResponse> response) {
+                RegisterResponse registerResponse = response.body();
+                if(registerResponse == null) {
+                    UserEvent.FailedRegistrationEvent event = new UserEvent.FailedRegistrationEvent(response.message());
+                    EventBus.getDefault().post(event);
+                } else {
+                    if(registerResponse.getCode() == MyanmarAttractionsConstants.RESPONSE_CODE_FAILED){
+                        UserEvent.FailedRegistrationEvent event = new UserEvent.FailedRegistrationEvent(registerResponse.getMessage());
+                        EventBus.getDefault().post(event);
+                    } else {
+                        UserEvent.SuccessRegistrationEvent event = new UserEvent.SuccessRegistrationEvent(registerResponse.getLoginUser());
+                        EventBus.getDefault().post(event);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RegisterResponse> call, Throwable throwable) {
+                UserEvent.FailedRegistrationEvent event = new UserEvent.FailedRegistrationEvent(throwable.getMessage());
+                EventBus.getDefault().post(event);
             }
         });
     }

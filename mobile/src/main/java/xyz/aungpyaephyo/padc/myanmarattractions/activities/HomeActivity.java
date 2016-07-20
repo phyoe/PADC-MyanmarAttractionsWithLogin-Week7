@@ -2,42 +2,44 @@ package xyz.aungpyaephyo.padc.myanmarattractions.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.util.Pair;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ImageView;
-
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import de.greenrobot.event.EventBus;
 import xyz.aungpyaephyo.padc.myanmarattractions.R;
-import xyz.aungpyaephyo.padc.myanmarattractions.adapters.AttractionAdapter;
-import xyz.aungpyaephyo.padc.myanmarattractions.data.models.AttractionModel;
+import xyz.aungpyaephyo.padc.myanmarattractions.data.models.UserModel;
 import xyz.aungpyaephyo.padc.myanmarattractions.data.vos.AttractionVO;
+import xyz.aungpyaephyo.padc.myanmarattractions.dialogs.SharedDialog;
+import xyz.aungpyaephyo.padc.myanmarattractions.events.DataEvent;
+import xyz.aungpyaephyo.padc.myanmarattractions.fragments.AttractionListFragment;
+import xyz.aungpyaephyo.padc.myanmarattractions.utils.MMFontUtils;
 import xyz.aungpyaephyo.padc.myanmarattractions.views.holders.AttractionViewHolder;
+import xyz.aungpyaephyo.padc.myanmarattractions.views.pods.ViewPodAccountControl;
+import xyz.aungpyaephyo.padc.myanmarattractions.views.pods.ViewPodLogoutUser;
 
-public class HomeActivity extends AppCompatActivity implements AttractionViewHolder.ControllerAttractionItem {
+public class HomeActivity extends AppCompatActivity
+        implements AttractionViewHolder.ControllerAttractionItem,
+        ViewPodLogoutUser.UserController {
 
-    @BindView(R.id.rv_attractions)
-    RecyclerView rvAttractions;
+    @BindView(R.id.drawer_layout)
+    DrawerLayout drawerLayout;
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @BindView(R.id.fab)
-    FloatingActionButton fab;
+    @BindView(R.id.navigation_view)
+    NavigationView navigationView;
 
-    private AttractionAdapter mAttractionAdapter;
+    private ViewPodAccountControl vpAccountControl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,20 +49,25 @@ public class HomeActivity extends AppCompatActivity implements AttractionViewHol
 
         setSupportActionBar(toolbar);
 
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setHomeAsUpIndicator(R.drawable.ic_attraction_launcher_icon);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
-        List<AttractionVO> attractionList = AttractionModel.getInstance().getAttractionList();
-        mAttractionAdapter = new AttractionAdapter(attractionList, this);
-        rvAttractions.setAdapter(mAttractionAdapter);
+        Menu leftMenu = navigationView.getMenu();
+        MMFontUtils.applyMMFontToMenu(leftMenu);
 
-        int gridColumnSpanCount = getResources().getInteger(R.integer.attraction_list_grid);
-        rvAttractions.setLayoutManager(new GridLayoutManager(getApplicationContext(), gridColumnSpanCount));
+        vpAccountControl = (ViewPodAccountControl) navigationView.getHeaderView(0);
+        vpAccountControl.setUserController(this);
+
+        if(savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fl_container, AttractionListFragment.newInstance())
+                    .commit();
+        }
+
+        UserModel.getInstance().init();
     }
 
     @Override
@@ -78,18 +85,72 @@ public class HomeActivity extends AppCompatActivity implements AttractionViewHol
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id) {
+            case R.id.action_settings:
+                return true;
+            case android.R.id.home:
+                drawerLayout.openDrawer(GravityCompat.START);
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == AccountControlActivity.RC_ACCOUNT_CONTROL_REGISTER) {
+            if (resultCode == RESULT_OK) {
+                boolean isRegisterSuccess = data.getBooleanExtra(AccountControlActivity.IR_IS_REGISTER_SUCCESS, false);
+                if (isRegisterSuccess) {
+                    SharedDialog.promptMsgWithTheme(this, getString(R.string.msg_welcome_new_user));
+
+                    DataEvent.RefreshUserLoginStatusEvent event = new DataEvent.RefreshUserLoginStatusEvent();
+                    EventBus.getDefault().post(event);
+                }
+            }
+        }
+    }
+
+    @Override
     public void onTapAttraction(AttractionVO attraction, ImageView ivAttraction) {
         Intent intent = AttractionDetailActivity.newIntent(attraction.getTitle());
+        startActivity(intent);
+        //overridePendingTransition(R.anim.enter, R.anim.exit);
+
+        /*
         ActivityOptionsCompat activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(this,
                 new Pair(ivAttraction, getString(R.string.attraction_list_detail_transition_name)));
         ActivityCompat.startActivity(this, intent, activityOptions.toBundle());
+        */
+    }
+
+    @Override
+    public void onTapLogin() {
+        Intent intent = AccountControlActivity.newIntent(AccountControlActivity.NAVIGATE_TO_LOGIN);
+        //startActivity(intent);
+        startActivityForResult(intent, AccountControlActivity.RC_ACCOUNT_CONTROL_LOGIN);
+    }
+
+    @Override
+    public void onTapRegister() {
+        Intent intent = AccountControlActivity.newIntent(AccountControlActivity.NAVIGATE_TO_REGISTER);
+       // startActivity(intent);
+        startActivityForResult(intent, AccountControlActivity.RC_ACCOUNT_CONTROL_REGISTER);
+    }
+
+    @Override
+    public void onTapLogout() {
+        SharedDialog.confirmYesNoWithTheme(this, getString(R.string.msg_confirm_logout), new SharedDialog.YesNoConfirmDelegate() {
+            @Override
+            public void onConfirmYes() {
+                UserModel.getInstance().logout();
+            }
+
+            @Override
+            public void onConfirmNo() {
+
+            }
+        });
     }
 }

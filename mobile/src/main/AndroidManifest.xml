@@ -15,12 +15,14 @@
             android:name=".activities.HomeActivity"
             android:label="@string/home_screen_title"
             android:theme="@style/AppTheme.NoActionBar">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
+        
         <activity
             android:name=".activities.AttractionDetailActivity"
             android:parentActivityName=".activities.HomeActivity"
@@ -29,6 +31,19 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="xyz.aungpyaephyo.padc.myanmarattractions.activities.HomeActivity" />
         </activity>
+
+        <activity
+            android:name=".activities.AccountControlActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+
+        </activity>
+        
+        <provider
+            android:authorities="xyz.aungpyaephyo.padc.myanmarattractions"
+            android:name=".data.persistence.AttractionProvider"
+            android:exported="false"
+            android:syncable="true" />
+
     </application>
 
 </manifest>
