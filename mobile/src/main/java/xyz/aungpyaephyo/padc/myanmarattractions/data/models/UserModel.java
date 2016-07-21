@@ -52,6 +52,20 @@ public class UserModel extends BaseModel {
         dataAgent.login(email, password);
     }
 
+    //Success Login
+    public void onEventMainThread(UserEvent.SuccessLoginEvent event) {
+        loginUser = event.getLoginUser();
+
+        //Persist login user object.
+        loginUser.saveLoginUser();
+
+    }
+
+    //Failed to Login
+    public void onEventMainThread(UserEvent.FailedLoginEvent event) {
+        //Do nothing on persistent layer.
+    }
+
     //Success Register
     public void onEventMainThread(UserEvent.SuccessRegistrationEvent event) {
         loginUser = event.getLoginUser();
