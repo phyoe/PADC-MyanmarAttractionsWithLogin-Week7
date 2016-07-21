@@ -48,6 +48,10 @@ public class UserModel extends BaseModel {
         dataAgent.register(name, email, password, dateOfBirth, country);
     }
 
+    public void login(String email, String password) {
+        dataAgent.login(email, password);
+    }
+
     //Success Register
     public void onEventMainThread(UserEvent.SuccessRegistrationEvent event) {
         loginUser = event.getLoginUser();

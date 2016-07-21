@@ -9,26 +9,20 @@
         android:layout_width="300dp"
         android:layout_height="wrap_content">
 
-        <!--
-        -->
         <xyz.aungpyaephyo.padc.myanmarattractions.components.MMTextView
             android:id="@+id/lbl_login_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_white_ish"
             android:background="?attr/colorPrimary"
             android:drawablePadding="@dimen/margin_medium"
             android:drawableRight="@drawable/ic_clear_24dp"
             android:fontFamily="sans-serif-condensed"
-            android:padding="@dimen/margin_medium_2" />
+            android:padding="@dimen/margin_medium_2"
+            android:textColor="@color/text_white_ish" />
 
-
-        <!--
-            android:layout_width="@dimen/input_box_width"
-        -->
         <xyz.aungpyaephyo.padc.myanmarattractions.components.MMEditText
             android:id="@+id/et_login_email"
-            android:layout_width="300dp"
+            android:layout_width="@dimen/input_box_width"
             android:layout_height="wrap_content"
             android:layout_below="@id/lbl_login_title"
             android:layout_marginLeft="@dimen/margin_medium_2"
@@ -45,12 +39,9 @@
 
         </xyz.aungpyaephyo.padc.myanmarattractions.components.MMEditText>
 
-        <!--
-            android:layout_width="@dimen/input_box_width"
-        -->
         <xyz.aungpyaephyo.padc.myanmarattractions.components.MMEditText
             android:id="@+id/et_login_password"
-            android:layout_width="300dp"
+            android:layout_width="@dimen/input_box_width"
             android:layout_height="wrap_content"
             android:layout_below="@id/et_login_email"
             android:layout_marginLeft="@dimen/margin_medium_2"

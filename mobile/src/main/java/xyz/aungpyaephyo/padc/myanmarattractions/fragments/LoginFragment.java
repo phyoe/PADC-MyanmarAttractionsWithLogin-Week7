@@ -18,6 +18,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,12 +30,14 @@ import butterknife.OnClick;
 import de.greenrobot.event.EventBus;
 import xyz.aungpyaephyo.padc.myanmarattractions.MyanmarAttractionsApp;
 import xyz.aungpyaephyo.padc.myanmarattractions.R;
+import xyz.aungpyaephyo.padc.myanmarattractions.adapters.CountryListAdapter;
 import xyz.aungpyaephyo.padc.myanmarattractions.controllers.ControllerAccountControl;
+import xyz.aungpyaephyo.padc.myanmarattractions.events.DataEvent;
 import xyz.aungpyaephyo.padc.myanmarattractions.utils.MyanmarAttractionsConstants;
 import xyz.aungpyaephyo.padc.myanmarattractions.views.PasswordVisibilityListener;
 
 /**
- * Created by aung on 7/15/16.
+ * Created by Phyoe Khant on 7/19/2016.
  */
 public class LoginFragment extends Fragment {
 
@@ -62,6 +67,13 @@ public class LoginFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         mControllerAccountControl = (ControllerAccountControl) context;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        Log.d("Start Here " , "login");
     }
 
     @Override
@@ -107,6 +119,15 @@ public class LoginFragment extends Fragment {
         }
     }
 
+    public boolean isEmailValid(String email) {
+        Pattern pattern = Pattern.compile(MyanmarAttractionsConstants.EMAIL_PATTERN, Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(email);
+        if (matcher.matches()) {
+            return true;
+        }
+        return false;
+    }
+
     @OnClick(R.id.link_forget_password)
     public void onTapForgetPassword(){
         Toast.makeText(getContext(), "Forget password", Toast.LENGTH_SHORT).show();
@@ -117,15 +138,14 @@ public class LoginFragment extends Fragment {
         Toast.makeText(getContext(), "Register", Toast.LENGTH_SHORT).show();
     }
 
-    public boolean isEmailValid(String email) {
-        Pattern pattern = Pattern.compile(MyanmarAttractionsConstants.EMAIL_PATTERN, Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(email);
-        if (matcher.matches()) {
-            return true;
-        }
-        return false;
+    //Success login
+    public void onEventMainThread(DataEvent.RefreshUserLoginStatusEvent event) {
+
     }
+
     /**
+     * register event into acceptable fragment
+     */
     @Override
     public void onStart() {
         super.onStart();
@@ -135,11 +155,14 @@ public class LoginFragment extends Fragment {
         }
     }
 
+    /**
+     * unregister event
+     * when user inactive, no need to display event
+     */
     @Override
     public void onStop() {
         super.onStop();
         EventBus eventBus = EventBus.getDefault();
         eventBus.unregister(this);
     }
-    /**/
 }

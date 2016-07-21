@@ -12,6 +12,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import xyz.aungpyaephyo.padc.myanmarattractions.data.agents.AttractionDataAgent;
 import xyz.aungpyaephyo.padc.myanmarattractions.data.models.AttractionModel;
 import xyz.aungpyaephyo.padc.myanmarattractions.data.responses.AttractionListResponse;
+import xyz.aungpyaephyo.padc.myanmarattractions.data.responses.LoginResponse;
 import xyz.aungpyaephyo.padc.myanmarattractions.data.responses.RegisterResponse;
 import xyz.aungpyaephyo.padc.myanmarattractions.events.UserEvent;
 import xyz.aungpyaephyo.padc.myanmarattractions.utils.CommonInstances;
@@ -94,6 +95,35 @@ public class RetrofitDataAgent implements AttractionDataAgent {
             @Override
             public void onFailure(Call<RegisterResponse> call, Throwable throwable) {
                 UserEvent.FailedRegistrationEvent event = new UserEvent.FailedRegistrationEvent(throwable.getMessage());
+                EventBus.getDefault().post(event);
+            }
+        });
+    }
+
+    @Override
+    public void login(String email, String password) {
+        Call<LoginResponse> loginCall = theApi.login(email, password);
+        loginCall.enqueue(new Callback<LoginResponse>() {
+            @Override
+            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                LoginResponse loginResponse = response.body();
+                if(loginResponse == null) {
+                    UserEvent.FailedLoginEvent event = new UserEvent.FailedLoginEvent(response.message());
+                    EventBus.getDefault().post(event);
+                } else {
+                    if(loginResponse.getCode() == MyanmarAttractionsConstants.RESPONSE_CODE_FAILED){
+                        UserEvent.FailedLoginEvent event = new UserEvent.FailedLoginEvent(loginResponse.getMessage());
+                        EventBus.getDefault().post(event);
+                    } else {
+                        UserEvent.SuccessLoginEvent event = new UserEvent.SuccessLoginEvent(loginResponse.getLoginUser());
+                        EventBus.getDefault().post(event);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<LoginResponse> call, Throwable throwable) {
+                UserEvent.FailedLoginEvent event = new UserEvent.FailedLoginEvent(throwable.getMessage());
                 EventBus.getDefault().post(event);
             }
         });

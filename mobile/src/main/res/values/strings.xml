@@ -53,4 +53,7 @@
     <string name="link_forget_password">Password ေမ့သြားလို႕လား</string>
     <string name="link_register">Register မလုပ္ရေသးပါက ျပဳလုပ္ရန္</string>
     <string name="lbl_login_title"><![CDATA[လြန္ခဲ့ေသာ ၃ ရက္အတြင္း <b>ျမန္မာ့အလွ</b> သို႕ Travel Destination ၇ ခု အသစ္ေရာက္ရွိလာပါသည္]]></string>
+
+    <string name="msg_welcome_login_user">အခုုလိုု က်ြန္ေတာ္တိုု့ ျမန္မာ့့ အလွ Mobile App ေလးမွာ Login လုုပ္တဲ့ အတြက္ ေက်းဇူးအမ်ားျကီးတင္ပါတယ္ ။</string>
+
 </resources>

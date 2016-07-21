@@ -110,6 +110,18 @@ public class HomeActivity extends AppCompatActivity
                 }
             }
         }
+
+        if (requestCode == AccountControlActivity.RC_ACCOUNT_CONTROL_LOGIN) {
+            if (resultCode == RESULT_OK) {
+                boolean isLoginSuccess = data.getBooleanExtra(AccountControlActivity.IR_IS_LOGIN_SUCCESS, false);
+                if (isLoginSuccess) {
+                    SharedDialog.promptMsgWithTheme(this, getString(R.string.msg_welcome_login_user));
+
+                    DataEvent.RefreshUserLoginStatusEvent event = new DataEvent.RefreshUserLoginStatusEvent();
+                    EventBus.getDefault().post(event);
+                }
+            }
+        }
     }
 
     @Override
